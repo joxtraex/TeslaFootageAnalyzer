@@ -121,17 +121,19 @@ class Player(QtWidgets.QMainWindow):
         self.mediaplayer.stop()
         self.playbutton.setText("Play")
 
-    def open_file(self):
+    def open_file(self, filename):
         """Open a media file in a MediaPlayer
         """
 
-        dialog_txt = "Choose Media File"
-        filename = QtWidgets.QFileDialog.getOpenFileName(self, dialog_txt, os.path.expanduser('~'))
+        #dialog_txt = "Choose Media File"
+        #filename = QtWidgets.QFileDialog.getOpenFileName(self, dialog_txt, os.path.expanduser('~'))
         if not filename:
             return
 
+        print("VLC opening file: "+filename)
+
         # getOpenFileName returns a tuple, so use only the actual file name
-        self.media = self.instance.media_new(filename[0])
+        self.media = self.instance.media_new(filename)
 
         # Put the media in the media player
         self.mediaplayer.set_media(self.media)
@@ -192,6 +194,9 @@ class Player(QtWidgets.QMainWindow):
             # This fixes that "bug".
             if not self.is_paused:
                 self.stop()
+
+    def isPlaying(self):
+        return self.mediaplayer.is_playing()
 
 def main():
     """Entry point for our simple vlc player
