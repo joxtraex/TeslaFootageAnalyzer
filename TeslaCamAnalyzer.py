@@ -1,7 +1,7 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, \
-    QGridLayout, QFileDialog, QListView
+    QGridLayout, QFileDialog, QListView, QLineEdit
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 
@@ -22,6 +22,10 @@ class App(QDialog):
     player1 = None
     player2 = None
     player3 = None
+
+    textboxLeft = None
+    textboxFront = None
+    textboxRight = None
 
     dumpFileProcessing = False;
     
@@ -64,21 +68,31 @@ class App(QDialog):
         self.player3.resize(640, 480)
         self.player3.show()
 
+        self.textboxLeft = QLineEdit(self)
+        self.textboxLeft.resize(280, 40)
+        self.textboxFront = QLineEdit(self)
+        self.textboxFront.resize(280, 40)
+        self.textboxRight= QLineEdit(self)
+        self.textboxRight.resize(280, 40)
+
         button = QPushButton("Begin")
         button.clicked.connect(self.onClick)
         button2 = QPushButton("Back")
-        button.clicked.connect(self.onClick2)
+        button2.clicked.connect(self.onClick2)
         layout.addWidget(button, 0, 3)
         layout.addWidget(button2, 1, 3)
-        layout.addWidget(self.player1, 2, 0)
-        layout.addWidget(self.player2, 2, 1)
-        layout.addWidget(self.player3, 2, 2)
+        layout.addWidget(self.textboxLeft, 2, 0)
+        layout.addWidget(self.textboxFront, 2, 1)
+        layout.addWidget(self.textboxRight, 2, 2)
+        layout.addWidget(self.player1, 3, 0)
+        layout.addWidget(self.player2, 3, 1)
+        layout.addWidget(self.player3, 3, 2)
 
         self.list = QListView()
         self.list.setWindowTitle('Example List')
         self.list.setMinimumSize(600, 400)
         self.list.setGeometry(self.left, self.top+50, self.width, self.height)
-        layout.addWidget(self.list, 3, 0)
+        layout.addWidget(self.list, 4, 0)
 
         self.horizontalGroupBox.setLayout(layout)
 
@@ -90,23 +104,37 @@ class App(QDialog):
         self.createListForDirectory(filename)
 
     def onClick2(self):
-        lastModel = self.modelList.pop()
+        lastModel = None
+        # don't pop the last element
+        if len(self.modelList) > 1:
+            #Hack for fixing list - may get rid of list
+            self.modelList.pop()
+            lastModel = self.modelList.pop()
+        else:
+            lastModel = self.modelList[-1];
+        print("ModeList[Pop] | "+str(lastModel))
         self.list.setModel(lastModel)
         self.list.show()
+        self.list.disconnect()
         self.list.clicked.connect(self.processDirectory)
 
 
     def createListForDirectory(self, baseDirectory):
         self.model = QStandardItemModel(self.list)
         self.modelList.append(self.model)
+        print("ModeList[A] | adding: "+str(self.model))
         self.basePath = baseDirectory
 
         for f in os.listdir(baseDirectory):
             if self.dumpFileProcessing is True:
                 print("file: "+str(f))
-            if (os.path.isdir(os.path.join(baseDirectory, f))):
+            directoryPath = os.path.join(baseDirectory, f)
+            if (os.path.isdir(directoryPath)):
                 if self.dumpFileProcessing is True:
-                    print("1 adding directory")
+                    print("1 adding directory | "+directoryPath)
+                if len(os.listdir(directoryPath)) <= 0:
+                    print("EMPTY PATH || Excluding path: "+str(directoryPath) +" due to empty")
+                    continue
                 item = QStandardItem(f)
                 self.model.appendRow(item)
 
@@ -115,14 +143,15 @@ class App(QDialog):
         self.list.clicked.connect(self.processDirectory)
 
     def createListForMap(self, map):
-        model = QStandardItemModel(self.list)
-        self.modelList.append(model)
+        model2 = QStandardItemModel(self.list)
+        self.modelList.append(model2)
+        print("ModeList[B] | adding: "+str(model2))
         for item in map:
             print("2 adding directory")
             item = QStandardItem(item)
-            model.appendRow(item)
+            model2.appendRow(item)
 
-        self.list.setModel(model)
+        self.list.setModel(model2)
         self.list.show()
         self.list.clicked.disconnect()
         self.list.clicked.connect(self.processDirectory2)
@@ -164,8 +193,14 @@ class App(QDialog):
         print("processing path(rebuilt): "+rebuiltPathA)
 
         self.pauseAllPlayersIfNecessary()
+
+        self.textboxLeft.setText("Left: "+targetFilePartial[:len(targetFilePartial)-1]+"-left_repeater.mp4")
         self.player1.open_file(os.path.abspath(os.path.join(self.targetPath, targetFilePartial[:len(targetFilePartial)-1]+"-left_repeater.mp4")))
+
+        self.textboxFront.setText("Front: "+targetFilePartial[:len(targetFilePartial)-1]+"-front.mp4")
         self.player2.open_file(os.path.abspath(os.path.join(self.targetPath, targetFilePartial[:len(targetFilePartial)-1]+"-front.mp4")))
+
+        self.textboxRight.setText("Right: "+targetFilePartial[:len(targetFilePartial)-1]+"-right_repeater.mp4")
         self.player3.open_file(os.path.abspath(os.path.join(self.targetPath, targetFilePartial[:len(targetFilePartial)-1]+"-right_repeater.mp4")))
 
     def pauseAllPlayersIfNecessary(self):
