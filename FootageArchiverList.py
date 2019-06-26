@@ -4,6 +4,7 @@ from os import listdir
 from os.path import isfile, join
 
 class FootageArchiverList:
+    list = None
     def __init__(self):
         super().__init__()
         self.title = 'PyQt5 layout - pythonspot.com'
@@ -31,3 +32,6 @@ class FootageArchiverList:
             return
         print("processing file: "+file)
         self.initUI(listdir(file))
+
+    def getList(self):
+        return list

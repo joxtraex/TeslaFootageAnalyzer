@@ -1,16 +1,17 @@
 import sys
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, \
-    QGridLayout, QFileDialog
+    QGridLayout, QFileDialog, QListView
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import pyqtSlot
 
 from pyqt5vlc import Player
 from FootageArchiverList import FootageArchiverList
+from PyQt5.QtGui import QStandardItem, QStandardItemModel
 
 # E:\TeslaCam
 class App(QDialog):
-
+    list = None
     def __init__(self):
         super().__init__()
         self.title = 'PyQt5 layout - pythonspot.com'
@@ -57,14 +58,33 @@ class App(QDialog):
         layout.addWidget(player2, 1, 1)
         layout.addWidget(player3, 1, 2)
 
+        self.list = QListView()
+        self.list.setWindowTitle('Example List')
+        self.list.setMinimumSize(600, 400)
+        self.list.setGeometry(self.left, self.top+50, self.width, self.height)
+        layout.addWidget(self.list, 2, 0)
+
         self.horizontalGroupBox.setLayout(layout)
 
     def onClick(self):
         print("processing")
         dialog_txt = "Choose Media File"
         filename = QFileDialog.getExistingDirectory(self, dialog_txt, os.path.expanduser('~'))
-        footageArchiver = FootageArchiverList()
-        footageArchiver.processDirectory(filename)
+
+        self.createListForDirectory(filename)
+
+    def createListForDirectory(self, file):
+        model = QStandardItemModel(self.list)
+        for f in os.listdir(file):
+            print("file: "+str(f))
+            item = QStandardItem(f)
+            model.appendRow(item)
+
+        self.list.setModel(model)
+        self.list.show()
+
+    def processDirectory(self, fileList):
+        print("not implemented")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
