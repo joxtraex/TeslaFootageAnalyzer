@@ -211,15 +211,6 @@ class App(QDialog):
         if self.player3.isPlaying():
             self.player3.stop()
 
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = App()
