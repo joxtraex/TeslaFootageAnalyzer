@@ -27,7 +27,7 @@ class App(QDialog):
     textboxFront = None
     textboxRight = None
 
-    dumpFileProcessing = False;
+    dumpFileProcessing = False
     
     def __init__(self):
         super().__init__()
@@ -93,6 +93,8 @@ class App(QDialog):
         self.list.setMinimumSize(600, 400)
         self.list.setGeometry(self.left, self.top+50, self.width, self.height)
         layout.addWidget(self.list, 4, 0)
+        self.list.show()
+        self.list.clicked.connect(self.processDirectory)
 
         self.horizontalGroupBox.setLayout(layout)
 
@@ -119,42 +121,74 @@ class App(QDialog):
         self.list.clicked.connect(self.processDirectory)
 
 
+    # will add files according to patterns for mp4s
+    # and will alos add regular directories
+    # possibly split out mp4s to another UI piece
     def createListForDirectory(self, baseDirectory):
         self.model = QStandardItemModel(self.list)
-        self.modelList.append(self.model)
         print("ModeList[A] | adding: "+str(self.model))
         self.basePath = baseDirectory
 
+        directories = []
+        mp4Files = []
         for f in os.listdir(baseDirectory):
             if self.dumpFileProcessing is True:
                 print("file: "+str(f))
-            directoryPath = os.path.join(baseDirectory, f)
+            directoryPath = self.joinAndSanitizePath(baseDirectory, f)
             if (os.path.isdir(directoryPath)):
                 if self.dumpFileProcessing is True:
                     print("1 adding directory | "+directoryPath)
                 if len(os.listdir(directoryPath)) <= 0:
                     print("EMPTY PATH || Excluding path: "+str(directoryPath) +" due to empty")
                     continue
-                item = QStandardItem(f)
-                self.model.appendRow(item)
+                if self.dumpFileProcessing is True:
+                    print("adding path "+f+" to directory list")
+                directories.append(f)
+            else :
+                if ".mp4" in f:
+                    print("adding mp4 "+f+" to mp4 list")
+                    mp4Files.append(f)
+
+        listOfProcessedMp4s = self.processListOfMp4s(mp4Files)
+
+        if listOfProcessedMp4s is not None:
+            print("processing list of mp4s")
+            listOfProcessedMp4s.sort()
+            self.processListAndAdd(listOfProcessedMp4s)
+        if directories is not None:
+            print("processing list of directories")
+            directories.sort()
+            self.processListAndAdd(directories)
 
         self.list.setModel(self.model)
-        self.list.show()
-        self.list.clicked.connect(self.processDirectory)
 
-    def createListForMap(self, map):
-        model2 = QStandardItemModel(self.list)
-        self.modelList.append(model2)
-        print("ModeList[B] | adding: "+str(model2))
-        for item in map:
-            print("2 adding directory")
-            item = QStandardItem(item)
-            model2.appendRow(item)
+    def processListAndAdd(self, listToProcess):
+        if listToProcess is not None:
+            print("List is not none | length: "+str(len(listToProcess)))
+            for item in listToProcess:
+                print("List item: "+item)
+                newItem = QStandardItem(item)
+                if self.dumpFileProcessing is True:
+                    print("adding :" +str(newItem)+" | to model")
+                self.model.appendRow(newItem)
+        else:
+            print("List is empty")
 
-        self.list.setModel(model2)
-        self.list.show()
-        self.list.clicked.disconnect()
-        self.list.clicked.connect(self.processDirectory2)
+    def processListOfMp4s(self, listOfMp4s):
+        if listOfMp4s is None or len(listOfMp4s) == 0:
+            print("no MP4s to process")
+            return None
+
+        print("Beginning processing of MP4s")
+        processedMp4s = []
+        for item in listOfMp4s:
+            print("processing mp4: "+item)
+            if "front.mp4" in item:
+                start = item.find("front.mp4")
+                baseName = item[0:start]
+                print("base path set as: "+baseName)
+                processedMp4s.append(baseName)
+        return processedMp4s
 
 
     def processDirectory(self, modelIndex):
@@ -163,31 +197,20 @@ class App(QDialog):
             print("1 processing directory for: "+targetFile)
 
         self.basePathMap = []
-        path = os.path.join(self.basePath, targetFile)
+        path = self.joinAndSanitizePath(self.basePath, targetFile)
         self.targetPath = path
-        print( "processing directory in path: "+path)
-        for f in os.listdir(path):
-            targetFilePath = os.path.join(self.basePath, f)
-            #isFile = os.path.isfile(targetFilePath)
-            if self.dumpFileProcessing is True:
-                print("files in clicked directory: "+targetFilePath)
-            if "front.mp4" in f:
-                start = f.find("front.mp4")
-                baseName = f[0:start]
-                print("base path set as: "+baseName)
-                self.basePathMap.append(baseName)
+        print("processing directory in path: "+path)
+        if not os.path.exists(path):
+            print("checking path is mp4 pattern")
+            self.processDirectory2(path)
+            return
+        else:
+            self.createListForDirectory(path)
 
-        self.basePathMap.sort()
-        #for path in basePaths:
-        for item in self.basePathMap:
-            print("path XXX: "+item)
-
-        self.createListForMap(self.basePathMap)
-
-    def processDirectory2(self, modelIndex):
-        targetFilePartial = self.modelList[-1].itemFromIndex(modelIndex).text()
+    def processDirectory2(self, pattern):
+        targetFilePartial = pattern
         print("\n2 processing directory for: "+targetFilePartial)
-        rebuiltPathA = os.path.abspath(os.path.join(self.targetPath, targetFilePartial[:len(targetFilePartial)-1]))
+        rebuiltPathA = self.joinAndSanitizePath(self.targetPath, targetFilePartial[:len(targetFilePartial)-1])
         #rebuiltPathB = os.path.abspath(os.path.join(rebuiltPathA, targetFilePartial))
 
         print("processing path(rebuilt): "+rebuiltPathA)
@@ -210,6 +233,12 @@ class App(QDialog):
             self.player2.stop()
         if self.player3.isPlaying():
             self.player3.stop()
+
+    def sanitizePaths(self, path1):
+        return os.path.abspath(path1)
+
+    def joinAndSanitizePath(self, path1, path2):
+        return self.sanitizePaths(os.path.join(path1, path2))
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
