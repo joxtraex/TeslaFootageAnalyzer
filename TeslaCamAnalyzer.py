@@ -53,8 +53,6 @@ class App(QDialog):
     def createGridLayout(self):
         self.horizontalGroupBox = QGroupBox("Grid")
         layout = QGridLayout()
-        #layout.setColumnStretch(1, 3)
-        #layout.setColumnStretch(2, 3)
 
         self.player1 = Player()
         self.player1.resize(640, 480)
@@ -78,7 +76,7 @@ class App(QDialog):
         button = QPushButton("Begin")
         button.clicked.connect(self.onClick)
         button2 = QPushButton("Back")
-        button2.clicked.connect(self.onClick2)
+        button2.clicked.connect(self.goBack)
         layout.addWidget(button, 0, 3)
         layout.addWidget(button2, 1, 3)
         layout.addWidget(self.textboxLeft, 2, 0)
@@ -91,6 +89,7 @@ class App(QDialog):
         self.list = QListView()
         self.list.setWindowTitle('Example List')
         self.list.setMinimumSize(600, 400)
+
         self.list.setGeometry(self.left, self.top+50, self.width, self.height)
         layout.addWidget(self.list, 4, 0)
         self.list.show()
@@ -105,20 +104,13 @@ class App(QDialog):
         self.modelList = []
         self.createListForDirectory(filename)
 
-    def onClick2(self):
-        lastModel = None
-        # don't pop the last element
-        if len(self.modelList) > 1:
-            #Hack for fixing list - may get rid of list
-            self.modelList.pop()
-            lastModel = self.modelList.pop()
-        else:
-            lastModel = self.modelList[-1];
-        print("ModeList[Pop] | "+str(lastModel))
-        self.list.setModel(lastModel)
-        self.list.show()
-        self.list.disconnect()
-        self.list.clicked.connect(self.processDirectory)
+    def goBack(self):
+        os.chdir(self.basePath)
+        os.chdir("..")
+        newPath = os.getcwd()
+        print("back button going from: "+str(self.basePath)+" to "+str(newPath))
+        self.createListForDirectory(newPath)
+
 
 
     # will add files according to patterns for mp4s

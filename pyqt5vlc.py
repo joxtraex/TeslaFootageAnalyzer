@@ -204,7 +204,6 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     player = Player()
     player.show()
-    player.resize(640, 480)
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
