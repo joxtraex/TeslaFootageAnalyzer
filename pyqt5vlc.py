@@ -22,7 +22,7 @@ class Player(QtWidgets.QMainWindow):
         self.setWindowTitle("Media Player")
 
         # Create a basic vlc instance
-        self.instance = vlc.Instance()
+        self.instance = vlc.Instance("--rate 3")
 
         self.media = None
 
