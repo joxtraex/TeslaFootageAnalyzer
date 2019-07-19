@@ -106,6 +106,8 @@ class Player(QtWidgets.QMainWindow):
             self.is_paused = True
             self.timer.stop()
         else:
+            if self.media is None:
+                return
             if self.mediaplayer.play() == -1:
                 self.open_file()
                 return
@@ -125,9 +127,11 @@ class Player(QtWidgets.QMainWindow):
         """Open a media file in a MediaPlayer
         """
 
-        #dialog_txt = "Choose Media File"
-        #filename = QtWidgets.QFileDialog.getOpenFileName(self, dialog_txt, os.path.expanduser('~'))
         if not filename:
+            return
+
+        if not os.path.exists(filename):
+            print("\n[ERROR] Unable to requested file: "+str(filename)+" as it does not exist. Returning");
             return
 
         print("VLC opening file: "+filename)
