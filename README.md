@@ -2,7 +2,7 @@
 TeslaFootageAnalyzer
 
 This project is about processing the footage pulled from the Tesla dashcam feature. It shows and plays 3 of the videos 
-associated with one particular isntance of time from the recording incident.
+associated with one particular instance of time from the recording incident.
 
 Libraries needed:
 https://pypi.org/project/PyQt5/
