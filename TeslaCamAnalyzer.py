@@ -218,14 +218,15 @@ class App(QDialog):
 
         self.pauseAllPlayersIfNecessary()
 
-        self.textboxLeft.setText("Left: "+targetFilePartial[:len(targetFilePartial)-1]+"-left_repeater.mp4")
-        self.player1.open_file(os.path.abspath(os.path.join(self.targetPath, targetFilePartial[:len(targetFilePartial)-1]+"-left_repeater.mp4")))
+        partial = targetFilePartial[:len(targetFilePartial)-1]
+        self.textboxLeft.setText("Left: "+partial+"-left_repeater.mp4")
+        self.player1.open_file(os.path.abspath(os.path.join(self.targetPath, partial+"-left_repeater.mp4")))
 
-        self.textboxFront.setText("Front: "+targetFilePartial[:len(targetFilePartial)-1]+"-front.mp4")
-        self.player2.open_file(os.path.abspath(os.path.join(self.targetPath, targetFilePartial[:len(targetFilePartial)-1]+"-front.mp4")))
+        self.textboxFront.setText("Front: "+partial+"-front.mp4")
+        self.player2.open_file(os.path.abspath(os.path.join(self.targetPath, partial+"-front.mp4")))
 
-        self.textboxRight.setText("Right: "+targetFilePartial[:len(targetFilePartial)-1]+"-right_repeater.mp4")
-        self.player3.open_file(os.path.abspath(os.path.join(self.targetPath, targetFilePartial[:len(targetFilePartial)-1]+"-right_repeater.mp4")))
+        self.textboxRight.setText("Right: "+partial+"-right_repeater.mp4")
+        self.player3.open_file(os.path.abspath(os.path.join(self.targetPath, partial+"-right_repeater.mp4")))
 
     def pauseAllPlayersIfNecessary(self):
         if self.player1.isPlaying():
