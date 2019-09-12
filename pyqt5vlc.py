@@ -8,6 +8,7 @@ Date: 25 December 2018
 import platform
 import os
 import sys
+import subprocess
 
 from PyQt5 import QtWidgets, QtGui, QtCore
 from PyQt5.QtWidgets import QGroupBox, QGridLayout
@@ -23,6 +24,7 @@ class Player(QtWidgets.QMainWindow):
 
         # Create a basic vlc instance
         self.instance = vlc.Instance("--rate 3")
+        self.currentPath = None
 
         self.media = None
 
@@ -90,7 +92,7 @@ class Player(QtWidgets.QMainWindow):
         file_menu.addAction(open_action)
         file_menu.addAction(close_action)
 
-        open_action.triggered.connect(self.open_file)
+        open_action.triggered.connect(self.startLargeVideo)
         close_action.triggered.connect(sys.exit)
 
         self.timer = QtCore.QTimer(self)
@@ -126,7 +128,7 @@ class Player(QtWidgets.QMainWindow):
     def open_file(self, filename):
         """Open a media file in a MediaPlayer
         """
-
+        self.currentPath = filename
         if not filename:
             return
 
@@ -201,6 +203,19 @@ class Player(QtWidgets.QMainWindow):
 
     def isPlaying(self):
         return self.mediaplayer.is_playing()
+
+    def startLargeVideo(self):
+        if self.currentPath is None or not os.path.exists(self.currentPath):
+            return
+
+        filePath = os.path.realpath(self.currentPath)
+        print("opening explorer for directory: "+str(filePath)+" | path: "+str(filePath))
+        if platform.system() == "Windows":
+            os.startfile(filePath)
+        elif platform.system() == "Darwin":
+            subprocess.Popen(["open", filePath])
+        else:
+            subprocess.Popen(["xdg-open", filePath])
 
 def main():
     """Entry point for our simple vlc player

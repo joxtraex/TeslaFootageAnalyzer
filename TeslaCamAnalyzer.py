@@ -19,9 +19,9 @@ class App(QDialog):
     basePathMap = None
     targetPath = None
 
-    player1 = None
-    player2 = None
-    player3 = None
+    videoPlayerLeft = None
+    videoPlayerFront = None
+    videoPlayerRight = None
 
     textboxLeft = None
     textboxFront = None
@@ -54,17 +54,17 @@ class App(QDialog):
         self.horizontalGroupBox = QGroupBox("Path: ")
         layout = QGridLayout()
 
-        self.player1 = Player()
-        self.player1.resize(640, 480)
-        self.player1.show()
+        self.videoPlayerLeft = Player()
+        self.videoPlayerLeft.resize(640, 480)
+        self.videoPlayerLeft.show()
 
-        self.player2 = Player()
-        self.player2.resize(640, 480)
-        self.player2.show()
+        self.videoPlayerFront = Player()
+        self.videoPlayerFront.resize(640, 480)
+        self.videoPlayerFront.show()
 
-        self.player3 = Player()
-        self.player3.resize(640, 480)
-        self.player3.show()
+        self.videoPlayerRight = Player()
+        self.videoPlayerRight.resize(640, 480)
+        self.videoPlayerRight.show()
 
         self.textboxLeft = QLineEdit(self)
         self.textboxLeft.resize(280, 40)
@@ -82,10 +82,11 @@ class App(QDialog):
         layout.addWidget(self.textboxLeft, 2, 0)
         layout.addWidget(self.textboxFront, 2, 1)
         layout.addWidget(self.textboxRight, 2, 2)
-        layout.addWidget(self.player1, 3, 0)
-        layout.addWidget(self.player2, 3, 1)
-        layout.addWidget(self.player3, 3, 2)
+        layout.addWidget(self.videoPlayerLeft, 3, 0)
+        layout.addWidget(self.videoPlayerFront, 3, 1)
+        layout.addWidget(self.videoPlayerRight, 3, 2)
 
+        #List for list of files
         self.list = QListView()
         self.list.setWindowTitle("Tesla Foootage Analyzer")
         self.list.setMinimumSize(600, 400)
@@ -120,7 +121,7 @@ class App(QDialog):
 
 
     # will add files according to patterns for mp4s
-    # and will alos add regular directories
+    # and will also add regular directories
     # possibly split out mp4s to another UI piece
     def createListForDirectory(self, baseDirectory):
         self.model = QStandardItemModel(self.list)
@@ -133,16 +134,16 @@ class App(QDialog):
             print("PROCESS DIRECTORY | ERROR NO PATH: "+baseDirectory)
             return
         for f in os.listdir(baseDirectory):
-            if self.dumpFileProcessing is True:
+            if self.dumpFileProcessing:
                 print("PROCESS DIRECTORY | file: "+str(f))
             directoryPath = self.joinAndSanitizePath(baseDirectory, f)
             if (os.path.isdir(directoryPath)):
-                if self.dumpFileProcessing is True:
+                if self.dumpFileProcessing:
                     print("PROCESS DIRECTORY | 1 adding directory | "+directoryPath)
                 if len(os.listdir(directoryPath)) <= 0:
                     print("PROCESS DIRECTORY | EMPTY PATH || Excluding path: "+str(directoryPath) +" due to empty")
                     continue
-                if self.dumpFileProcessing is True:
+                if self.dumpFileProcessing:
                     print("PROCESS DIRECTORY | adding path "+f+" to directory list")
                 directories.append(f)
             else :
@@ -169,7 +170,7 @@ class App(QDialog):
             for item in listToProcess:
                 print("PROCESS LIST | List item: "+item)
                 newItem = QStandardItem(item)
-                if self.dumpFileProcessing is True:
+                if self.dumpFileProcessing:
                     print("PROCESS LIST | adding :" +str(newItem)+" | to model")
                 self.model.appendRow(newItem)
         else:
@@ -194,7 +195,7 @@ class App(QDialog):
 
     def processDirectory(self, modelIndex):
         targetFile = self.model.itemFromIndex(modelIndex).text()
-        if self.dumpFileProcessing is True:
+        if self.dumpFileProcessing:
             print("PROCESSING DIRECTORY | 1 processing directory for: "+targetFile)
 
         self.basePathMap = []
@@ -220,21 +221,21 @@ class App(QDialog):
         self.horizontalGroupBox.setTitle("Path: "+self.targetPath)
         partial = targetFilePartial[:len(targetFilePartial)-1]
         self.textboxLeft.setText("Left: "+partial+"-left_repeater.mp4")
-        self.player1.open_file(os.path.abspath(os.path.join(self.targetPath, partial+"-left_repeater.mp4")))
+        self.videoPlayerLeft.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-left_repeater.mp4")))
 
         self.textboxFront.setText("Front: "+partial+"-front.mp4")
-        self.player2.open_file(os.path.abspath(os.path.join(self.targetPath, partial+"-front.mp4")))
+        self.videoPlayerFront.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-front.mp4")))
 
         self.textboxRight.setText("Right: "+partial+"-right_repeater.mp4")
-        self.player3.open_file(os.path.abspath(os.path.join(self.targetPath, partial+"-right_repeater.mp4")))
+        self.videoPlayerRight.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-right_repeater.mp4")))
 
     def pauseAllPlayersIfNecessary(self):
-        if self.player1.isPlaying():
-            self.player1.stop()
-        if self.player2.isPlaying():
-            self.player2.stop()
-        if self.player3.isPlaying():
-            self.player3.stop()
+        if self.videoPlayerLeft.isPlaying():
+            self.videoPlayerLeft.stop()
+        if self.videoPlayerFront.isPlaying():
+            self.videoPlayerFront.stop()
+        if self.videoPlayerRight.isPlaying():
+            self.videoPlayerRight.stop()
 
     def sanitizePaths(self, path1):
         return os.path.abspath(path1)
