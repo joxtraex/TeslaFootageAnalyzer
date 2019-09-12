@@ -31,7 +31,7 @@ class App(QDialog):
     
     def __init__(self):
         super().__init__()
-        self.title = 'PyQt5 layout - pythonspot.com'
+        self.title = 'Tesla Footage Analyzer'
         self.left = 10
         self.top = 10
         self.width = 1920
@@ -51,7 +51,7 @@ class App(QDialog):
         self.show()
 
     def createGridLayout(self):
-        self.horizontalGroupBox = QGroupBox("Grid")
+        self.horizontalGroupBox = QGroupBox("Path: ")
         layout = QGridLayout()
 
         self.player1 = Player()
@@ -73,7 +73,7 @@ class App(QDialog):
         self.textboxRight= QLineEdit(self)
         self.textboxRight.resize(280, 40)
 
-        button = QPushButton("Begin")
+        button = QPushButton("Load Path")
         button.clicked.connect(self.beginProcessingDirectory)
         button2 = QPushButton("Back")
         button2.clicked.connect(self.goBack)
@@ -87,7 +87,7 @@ class App(QDialog):
         layout.addWidget(self.player3, 3, 2)
 
         self.list = QListView()
-        self.list.setWindowTitle('Example List')
+        self.list.setWindowTitle("Tesla Foootage Analyzer")
         self.list.setMinimumSize(600, 400)
 
         self.list.setGeometry(self.left, self.top+50, self.width, self.height)
@@ -203,12 +203,12 @@ class App(QDialog):
         print("PROCESSING DIRECTORY | processing directory in path: "+path)
         if not os.path.exists(path):
             print("PROCESSING DIRECTORY | checking path is mp4 pattern")
-            self.processDirectory2(path)
+            self.processPattern(path)
             return
         else:
             self.createListForDirectory(path)
 
-    def processDirectory2(self, pattern):
+    def processPattern(self, pattern):
         targetFilePartial = pattern
         print("\n2 PLAYING PATTERN | processing directory for: "+targetFilePartial)
         rebuiltPathA = self.joinAndSanitizePath(self.targetPath, targetFilePartial[:len(targetFilePartial)-1])
@@ -217,7 +217,7 @@ class App(QDialog):
         print("PLAYING PATTERN |processing path(rebuilt): "+rebuiltPathA)
 
         self.pauseAllPlayersIfNecessary()
-
+        self.horizontalGroupBox.setTitle("Path: "+self.targetPath)
         partial = targetFilePartial[:len(targetFilePartial)-1]
         self.textboxLeft.setText("Left: "+partial+"-left_repeater.mp4")
         self.player1.open_file(os.path.abspath(os.path.join(self.targetPath, partial+"-left_repeater.mp4")))
