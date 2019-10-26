@@ -22,9 +22,11 @@ class App(QDialog):
     videoPlayerLeft = None
     videoPlayerFront = None
     videoPlayerRight = None
+    videoPlayerBack = None
 
     textboxLeft = None
     textboxFront = None
+    textboxBack = None
     textboxRight = None
 
     dumpFileProcessing = False
@@ -66,10 +68,16 @@ class App(QDialog):
         self.videoPlayerRight.resize(640, 480)
         self.videoPlayerRight.show()
 
+        self.videoPlayerBack = Player()
+        self.videoPlayerBack.resize(640,480)
+        self.videoPlayerBack.show()
+
         self.textboxLeft = QLineEdit(self)
         self.textboxLeft.resize(280, 40)
         self.textboxFront = QLineEdit(self)
         self.textboxFront.resize(280, 40)
+        self.textboxBack = QLineEdit(self)
+        self.textboxBack.resize(280, 40)
         self.textboxRight= QLineEdit(self)
         self.textboxRight.resize(280, 40)
 
@@ -81,10 +89,12 @@ class App(QDialog):
         layout.addWidget(button2, 1, 3)
         layout.addWidget(self.textboxLeft, 2, 0)
         layout.addWidget(self.textboxFront, 2, 1)
-        layout.addWidget(self.textboxRight, 2, 2)
+        layout.addWidget(self.textboxBack, 2, 2)
+        layout.addWidget(self.textboxRight, 2, 3)
         layout.addWidget(self.videoPlayerLeft, 3, 0)
         layout.addWidget(self.videoPlayerFront, 3, 1)
-        layout.addWidget(self.videoPlayerRight, 3, 2)
+        layout.addWidget(self.videoPlayerBack, 3, 2)
+        layout.addWidget(self.videoPlayerRight, 3, 3)
 
         #List for list of files
         self.list = QListView()
@@ -220,19 +230,27 @@ class App(QDialog):
         self.pauseAllPlayersIfNecessary()
         self.horizontalGroupBox.setTitle("Path: "+self.targetPath)
         partial = targetFilePartial[:len(targetFilePartial)-1]
+        
         self.textboxLeft.setText("Left: "+partial+"-left_repeater.mp4")
         self.videoPlayerLeft.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-left_repeater.mp4")))
 
         self.textboxFront.setText("Front: "+partial+"-front.mp4")
         self.videoPlayerFront.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-front.mp4")))
 
+        self.textboxBack.setText("Front: "+partial+"-back.mp4")
+        self.videoPlayerBack.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-back.mp4")))
+
         self.textboxRight.setText("Right: "+partial+"-right_repeater.mp4")
         self.videoPlayerRight.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-right_repeater.mp4")))
+
+
 
     def pauseAllPlayersIfNecessary(self):
         if self.videoPlayerLeft.isPlaying():
             self.videoPlayerLeft.stop()
         if self.videoPlayerFront.isPlaying():
+            self.videoPlayerFront.stop()
+        if self.videoPlayerBack.isPlaying():
             self.videoPlayerFront.stop()
         if self.videoPlayerRight.isPlaying():
             self.videoPlayerRight.stop()
