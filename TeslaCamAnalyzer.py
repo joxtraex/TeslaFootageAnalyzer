@@ -9,6 +9,7 @@ from pyqt5vlc import Player
 from FootageArchiverList import FootageArchiverList
 from PyQt5.QtGui import QStandardItem, QStandardItemModel
 from PyQt5.QtCore import QModelIndex
+from datetime import tzinfo, timedelta, datetime
 
 # E:\TeslaCam
 class App(QDialog):
@@ -16,7 +17,6 @@ class App(QDialog):
     model = None
     modelList = None
     basePath = None
-    basePathMap = None
     targetPath = None
 
     videoPlayerLeft = None
@@ -35,14 +35,14 @@ class App(QDialog):
         super().__init__()
         self.title = 'Tesla Footage Analyzer'
         self.left = 10
-        self.top = 10
+        self.top = 60
         self.width = 1920
         self.height = 1080
         self.initUI()
 
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.setGeometry(self.left, self.top+50, self.width, self.height)
+        self.setGeometry(self.left, self.top, self.width, self.height)
 
         self.createGridLayout()
 
@@ -85,24 +85,27 @@ class App(QDialog):
         button.clicked.connect(self.beginProcessingDirectory)
         button2 = QPushButton("Back")
         button2.clicked.connect(self.goBack)
+        button3 = QPushButton("Play All")
+        button3.clicked.connect(self.playAllVideos)
         layout.addWidget(button, 0, 3)
         layout.addWidget(button2, 1, 3)
-        layout.addWidget(self.textboxLeft, 2, 0)
-        layout.addWidget(self.textboxFront, 2, 1)
-        layout.addWidget(self.textboxBack, 2, 2)
-        layout.addWidget(self.textboxRight, 2, 3)
-        layout.addWidget(self.videoPlayerLeft, 3, 0)
-        layout.addWidget(self.videoPlayerFront, 3, 1)
-        layout.addWidget(self.videoPlayerBack, 3, 2)
-        layout.addWidget(self.videoPlayerRight, 3, 3)
+        layout.addWidget(button3, 2, 3)
+        layout.addWidget(self.textboxLeft, 3, 0)
+        layout.addWidget(self.textboxFront, 3, 1)
+        layout.addWidget(self.textboxBack, 3, 2)
+        layout.addWidget(self.textboxRight, 3, 3)
+        layout.addWidget(self.videoPlayerLeft, 4, 0)
+        layout.addWidget(self.videoPlayerFront, 4, 1)
+        layout.addWidget(self.videoPlayerBack, 4, 2)
+        layout.addWidget(self.videoPlayerRight, 4, 3)
 
         #List for list of files
         self.list = QListView()
         self.list.setWindowTitle("Tesla Foootage Analyzer")
         self.list.setMinimumSize(600, 400)
 
-        self.list.setGeometry(self.left, self.top+50, self.width, self.height)
-        layout.addWidget(self.list, 4, 0)
+        self.list.setGeometry(self.left, self.top, self.width, self.height)
+        layout.addWidget(self.list, 5, 0)
         self.list.show()
         self.list.clicked.connect(self.processDirectory)
 
@@ -128,6 +131,40 @@ class App(QDialog):
         print("back button going from: "+str(self.basePath)+" to "+str(newPath))
         self.createListForDirectory(newPath)
 
+    def playAllVideos(self):
+        listPath = []
+        for index in range(self.model.rowCount()):
+            item = self.model.item(index).text()
+            print("item: "+str(item))
+            partial = item[:len(item) - 1]
+            listPath.append(os.path.abspath(self.joinAndSanitizePath(self.targetPath, partial)))
+
+
+        list = []
+        for item in listPath:
+            list.append(item+"-left_repeater.mp4")
+        self.videoPlayerLeft.setPlaylistToPlayer(list)
+        list.clear()
+        #
+        for item in listPath:
+            list.append(item+"-front.mp4")
+        self.videoPlayerFront.setPlaylistToPlayer(list)
+        list.clear()
+        #
+        for item in listPath:
+            list.append(item+"-right_repeater.mp4")
+        self.videoPlayerRight.setPlaylistToPlayer(list)
+        list.clear()
+        #
+        for item in listPath:
+            list.append(item+"-back.mp4")
+        self.videoPlayerBack.setPlaylistToPlayer(list)
+        list.clear()
+
+        self.videoPlayerLeft.list_player.play()
+        self.videoPlayerFront.list_player.play()
+        self.videoPlayerRight.list_player.play()
+        self.videoPlayerBack.list_player.play()
 
 
     # will add files according to patterns for mp4s
@@ -204,11 +241,11 @@ class App(QDialog):
 
 
     def processDirectory(self, modelIndex):
+        print("PROCESSING DIRECTORY | modelIndex: "+str(modelIndex))
         targetFile = self.model.itemFromIndex(modelIndex).text()
         if self.dumpFileProcessing:
             print("PROCESSING DIRECTORY | 1 processing directory for: "+targetFile)
 
-        self.basePathMap = []
         path = self.joinAndSanitizePath(self.basePath, targetFile)
         self.targetPath = path
         print("PROCESSING DIRECTORY | processing directory in path: "+path)
@@ -221,6 +258,7 @@ class App(QDialog):
 
     def processPattern(self, pattern):
         targetFilePartial = pattern
+        # 2019-11-19_21-21-45-back.mp4
         print("\n2 PLAYING PATTERN | processing directory for: "+targetFilePartial)
         rebuiltPathA = self.joinAndSanitizePath(self.targetPath, targetFilePartial[:len(targetFilePartial)-1])
         #rebuiltPathB = os.path.abspath(os.path.join(rebuiltPathA, targetFilePartial))
@@ -228,13 +266,20 @@ class App(QDialog):
         print("PLAYING PATTERN |processing path(rebuilt): "+rebuiltPathA)
 
         self.pauseAllPlayersIfNecessary()
-        self.horizontalGroupBox.setTitle("Path: "+self.targetPath)
         partial = targetFilePartial[:len(targetFilePartial)-1]
-        
+
+        listofItems = partial.split("\\")
+        lastPart = listofItems[len(listofItems)-1]
+        mainDate = lastPart.split("_");
+        actualDateRaw = mainDate[0].split("-")
+        actualTimeRaw = mainDate[1].split("-")
+        actualDate = datetime(int(actualDateRaw[0]), int(actualDateRaw[1]), int(actualDateRaw[2]), int(actualTimeRaw[0]), int(actualTimeRaw[1]), int(actualTimeRaw[2])).strftime("%B %d. %A %Y %I:%M %p")
+        self.horizontalGroupBox.setTitle("Path: "+self.targetPath+" | Date(formatted): "+actualDate)
+
         self.textboxLeft.setText("Left: "+partial+"-left_repeater.mp4")
         self.videoPlayerLeft.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-left_repeater.mp4")))
 
-        self.textboxFront.setText("Front: "+partial+"-front.mp4")
+        self.textboxFront.setText("Front: "+partial+"-front.mp4 | ")
         self.videoPlayerFront.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-front.mp4")))
 
         self.textboxBack.setText("Front: "+partial+"-back.mp4")

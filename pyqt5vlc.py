@@ -33,6 +33,8 @@ class Player(QtWidgets.QMainWindow):
 
         self.create_ui()
         self.is_paused = False
+        self.vlc_events = self.mediaplayer.event_manager()
+        self.vlc_events.event_attach(vlc.EventType.MediaPlayerEndReached, self.onMediaFinished)
 
     def create_ui(self):
         """Set up the user interface, signals & slots
@@ -216,6 +218,17 @@ class Player(QtWidgets.QMainWindow):
             subprocess.Popen(["open", filePath])
         else:
             subprocess.Popen(["xdg-open", filePath])
+
+    def onMediaFinished(self, data):
+        print("mediaFinished: "+str(self) + "| file: "+str(self.currentPath))
+
+    def setPlaylistToPlayer(self, list):
+        self.vlc_playlist = self.instance.media_list_new()
+        for item in list:
+            print("PLAYLIST | adding: "+str(item))
+            self.vlc_playlist.add_media(self.instance.media_new(item))
+        self.list_player = self.instance.media_list_player_new()
+        self.list_player.set_media_list(self.vlc_playlist)
 
 def main():
     """Entry point for our simple vlc player
