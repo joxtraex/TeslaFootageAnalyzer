@@ -30,6 +30,7 @@ class App(QDialog):
     textboxRight = None
 
     dumpFileProcessing = False
+    enablePlayAll = False
     
     def __init__(self):
         super().__init__()
@@ -87,17 +88,22 @@ class App(QDialog):
         button2.clicked.connect(self.goBack)
         button3 = QPushButton("Play All")
         button3.clicked.connect(self.playAllVideos)
+        button4 = QPushButton("Stop All")
+        button4.clicked.connect(self.stopAllVideos)
         layout.addWidget(button, 0, 3)
         layout.addWidget(button2, 1, 3)
-        layout.addWidget(button3, 2, 3)
-        layout.addWidget(self.textboxLeft, 3, 0)
-        layout.addWidget(self.textboxFront, 3, 1)
-        layout.addWidget(self.textboxBack, 3, 2)
-        layout.addWidget(self.textboxRight, 3, 3)
-        layout.addWidget(self.videoPlayerLeft, 4, 0)
-        layout.addWidget(self.videoPlayerFront, 4, 1)
-        layout.addWidget(self.videoPlayerBack, 4, 2)
-        layout.addWidget(self.videoPlayerRight, 4, 3)
+        if self.enablePlayAll:
+            layout.addWidget(button3, 2, 3)
+        layout.addWidget(button4, 4,3)
+        #
+        layout.addWidget(self.textboxLeft, 5, 0)
+        layout.addWidget(self.textboxFront, 5, 1)
+        layout.addWidget(self.textboxBack, 5, 2)
+        layout.addWidget(self.textboxRight, 5, 3)
+        layout.addWidget(self.videoPlayerLeft, 6, 0)
+        layout.addWidget(self.videoPlayerFront, 6, 1)
+        layout.addWidget(self.videoPlayerBack, 6, 2)
+        layout.addWidget(self.videoPlayerRight, 6, 3)
 
         #List for list of files
         self.list = QListView()
@@ -105,7 +111,7 @@ class App(QDialog):
         self.list.setMinimumSize(600, 400)
 
         self.list.setGeometry(self.left, self.top, self.width, self.height)
-        layout.addWidget(self.list, 5, 0)
+        layout.addWidget(self.list, 7, 0)
         self.list.show()
         self.list.clicked.connect(self.processDirectory)
 
@@ -135,9 +141,22 @@ class App(QDialog):
         listPath = []
         for index in range(self.model.rowCount()):
             item = self.model.item(index).text()
-            print("item: "+str(item))
             partial = item[:len(item) - 1]
-            listPath.append(os.path.abspath(self.joinAndSanitizePath(self.targetPath, partial)))
+            # Disabling path processing here
+            # localFilePathCheck = self.targetPath.split("\\")
+            # builtPath = ""
+            # count = 0
+            # for item in localFilePathCheck[0:len(localFilePathCheck)-1]:
+            #     additional = str("" if count == len(localFilePathCheck)-1 else "\\")
+            #     builtPath+=item + additional
+            #     count+=1
+            # containsLocalFileCheck = str(builtPath)+localFilePathCheck[len(localFilePathCheck)-1]+"back.mp4"
+            # if os.path.exists(containsLocalFileCheck):
+            #     targetFile = self.joinAndSanitizePath(self.targetPath, localFilePathCheck[len(localFilePathCheck)-1])
+            # else:
+            targetFile = self.joinAndSanitizePath(self.targetPath, partial)
+            print("item: "+str(item)+" | partial: "+str(partial)+" || targetFile: "+str(targetFile))
+            listPath.append(os.path.abspath(targetFile))
 
 
         list = []
@@ -296,9 +315,12 @@ class App(QDialog):
         if self.videoPlayerFront.isPlaying():
             self.videoPlayerFront.stop()
         if self.videoPlayerBack.isPlaying():
-            self.videoPlayerFront.stop()
+            self.videoPlayerBack.stop()
         if self.videoPlayerRight.isPlaying():
             self.videoPlayerRight.stop()
+
+    def stopAllVideos(self):
+        self.pauseAllPlayersIfNecessary()
 
     def sanitizePaths(self, path1):
         return os.path.abspath(path1)
