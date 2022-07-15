@@ -1,5 +1,7 @@
 import sys
 import os
+
+from PyQt5 import QtGui
 from PyQt5.QtWidgets import QApplication, QWidget, QPushButton, QHBoxLayout, QGroupBox, QDialog, QVBoxLayout, \
     QGridLayout, QFileDialog, QListView, QLineEdit
 from PyQt5.QtGui import QIcon
@@ -158,7 +160,6 @@ class App(QDialog):
             print("item: "+str(item)+" | partial: "+str(partial)+" || targetFile: "+str(targetFile))
             listPath.append(os.path.abspath(targetFile))
 
-
         list = []
         for item in listPath:
             list.append(item+"-left_repeater.mp4")
@@ -184,7 +185,6 @@ class App(QDialog):
         self.videoPlayerFront.list_player.play()
         self.videoPlayerRight.list_player.play()
         self.videoPlayerBack.list_player.play()
-
 
     # will add files according to patterns for mp4s
     # and will also add regular directories
@@ -271,6 +271,8 @@ class App(QDialog):
         if not os.path.exists(path):
             print("PROCESSING DIRECTORY | checking path is mp4 pattern")
             self.processPattern(path)
+            # Set color of previous selected item
+            self.model.itemFromIndex(modelIndex).setBackground(QtGui.QColor('sea green'))
             return
         else:
             self.createListForDirectory(path)
@@ -306,7 +308,6 @@ class App(QDialog):
 
         self.textboxRight.setText("Right: "+partial+"-right_repeater.mp4")
         self.videoPlayerRight.open_file(os.path.abspath(os.path.join(self.targetPath, partial + "-right_repeater.mp4")))
-
 
 
     def pauseAllPlayersIfNecessary(self):
